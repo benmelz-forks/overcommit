@@ -28,6 +28,8 @@ module Overcommit
         sign
       when :run_all
         run_all
+      when :pre_squash
+        pre_squash
       end
     rescue Overcommit::Exceptions::ConfigurationSignatureChanged => e
       puts e
@@ -97,6 +99,11 @@ module Overcommit
       opts.on('-r [hook]', '--run [hook]', 'Run specified hook against all git tracked files. Defaults to `pre_commit`.') do |arg| # rubocop:disable Layout/LineLength
         @options[:action] = :run_all
         @options[:hook_to_run] = arg ? arg.to_s : 'run-all'
+      end
+
+      opts.on('--pre-squash [branch]', 'Runs pre_commit hooks against the diff with another branch. Defaults to `main`.') do |arg| # rubocop:disable Layout/LineLength
+        @options[:action] = :pre_squash
+        @options[:branch] = arg ? arg.to_s : 'main'
       end
     end
 
@@ -201,6 +208,19 @@ module Overcommit
     def run_all
       empty_stdin = File.open(File::NULL) # pre-commit hooks don't take input
       context = Overcommit::HookContext.create(@options[:hook_to_run], config, @arguments, empty_stdin) # rubocop:disable Layout/LineLength
+      config.apply_environment!(context, ENV)
+
+      printer = Overcommit::Printer.new(config, log, context)
+      runner  = Overcommit::HookRunner.new(config, log, context, printer)
+
+      status = runner.run
+
+      halt(status ? 0 : 65)
+    end
+
+    def pre_squash
+      empty_stdin = File.open(File::NULL) # pre-commit hooks don't take input
+      context = Overcommit::HookContext.create(@options[:hook_to_run], config, @options[:branch], empty_stdin)
       config.apply_environment!(context, ENV)
 
       printer = Overcommit::Printer.new(config, log, context)
