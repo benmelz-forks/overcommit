@@ -220,7 +220,7 @@ module Overcommit
 
     def pre_squash
       empty_stdin = File.open(File::NULL) # pre-commit hooks don't take input
-      context = Overcommit::HookContext.create(@options[:hook_to_run], config, @options[:branch], empty_stdin)
+      context = Overcommit::HookContext.create("pre_squash", config, @options[:branch], empty_stdin)
       config.apply_environment!(context, ENV)
 
       printer = Overcommit::Printer.new(config, log, context)
