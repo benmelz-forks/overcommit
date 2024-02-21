@@ -9,7 +9,7 @@ module Overcommit::HookContext
   # which is useful for automated CI scripts.
   class PreSquash < Base
     def target_branch
-      @arguments
+      @args
     end
 
     def modified_files
