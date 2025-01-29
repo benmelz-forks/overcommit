@@ -48,4 +48,5 @@ end
 
 logger = Overcommit::Logger.new(STDOUT)
 
+puts "ARGV = #{ARGV}"
 Overcommit::CLI.new(ARGV, STDIN, logger).run
